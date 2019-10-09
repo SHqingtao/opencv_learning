@@ -1,0 +1,5 @@
+-i https://pypi.doubanio.com/simple
+
+opencv-python
+numpy
+matplotlib
