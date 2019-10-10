@@ -317,5 +317,271 @@ def images_gradient_laplacian():
     # cv_show(img, 'img')
 
 
+def canny():
+    """
+    图像边缘检测  双阈值检测
+    :return:
+
+    使用高斯滤波器，以平滑图像，滤除噪声。
+    计算图像中每个像素点的梯度强度和方向。
+    应用非极大值（Non-Maximum Suppression）抑制，以消除边缘检测带来的杂散响应。
+    应用双阈值（Double-Threshold）检测来确定真实的和潜在的边缘。
+    通过抑制孤立的弱边缘最终完成边缘检测。
+
+    Canny
+    第一个参数是需要处理的原图像，该图像必须为单通道的灰度图
+    第二个参数是阈值1
+    第三个参数是阈值2
+    1，2的调整可以的到最佳的轮廓图
+    """
+    img = cv2.imread('{}/images/lena.jpg'.format(config.BASE_DIR, ), cv2.IMREAD_GRAYSCALE)
+    v1 = cv2.Canny(img, 80, 150)
+    v2 = cv2.Canny(img, 50, 100)
+    res = np.hstack((v1, v2))
+    cv_show('res', res)
+
+    img = cv2.imread('{}/images/car.png'.format(config.BASE_DIR, ), cv2.IMREAD_GRAYSCALE)
+    v1 = cv2.Canny(img, 120, 250)
+    v2 = cv2.Canny(img, 50, 100)
+    res = np.hstack((v1, v2))
+    # cv_show('res', res)
+
+
+def image_pyramid():
+    """
+    图像金字塔: 高斯金字塔
+    :return:
+    """
+    img = cv2.imread('{}/images/AM.png'.format(config.BASE_DIR, ),
+                     cv2.IMREAD_GRAYSCALE)
+    # cv_show('img', img)
+    print(img.shape)
+
+    # 向上采样放大
+    up = cv2.pyrUp(img)
+    # cv_show('up', up)
+    print(up.shape)
+
+    # 向下采样缩小
+    down = cv2.pyrDown(img)
+    # cv_show(down, 'down')
+    print(down.shape)
+
+    up2 = cv2.pyrUp(up)
+    cv_show('up2', up2)
+    print(up2.shape)
+
+
+def image_pyramid_2():
+    """
+    图像金字塔: 拉普拉斯金字塔
+
+    :return:
+    """
+    img = cv2.imread('{}/images/AM.png'.format(config.BASE_DIR, ),
+                     cv2.IMREAD_GRAYSCALE)
+    down = cv2.pyrDown(img)
+    down_up = cv2.pyrUp(down)
+    l_1 = img - down_up
+    cv_show('l_1', l_1)
+
+
+def image_contour():
+    """
+    cv2.findContours(img,mode,method)
+    mode:轮廓检索模式
+
+    RETR_EXTERNAL ：只检索最外面的轮廓；
+    RETR_LIST：检索所有的轮廓，并将其保存到一条链表当中；
+    RETR_CCOMP：检索所有的轮廓，并将他们组织为两层：顶层是各部分的外部边界，第二层是空洞的边界;
+    RETR_TREE：检索所有的轮廓，并重构嵌套轮廓的整个层次;
+    method:轮廓逼近方法
+
+    CHAIN_APPROX_NONE：以Freeman链码的方式输出轮廓，所有其他方法输出多边形（顶点的序列）。
+    CHAIN_APPROX_SIMPLE:压缩水平的、垂直的和斜的部分，也就是，函数只保留他们的终点部分。
+    :return:
+    """
+    img = cv2.imread('{}/images/contours.png'.format(config.BASE_DIR, ))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    # cv_show('thresh', thresh)
+
+    contours, hierarchy = cv2.findContours(
+        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    # print(binary, contours, hierarchy)
+    # cv_show('img', img)
+
+    # 传入绘制图像，轮廓，轮廓索引，颜色模式，线条厚度
+    # 注意需要copy,要不原图会变。。。
+    draw_img = img.copy()
+    res = cv2.drawContours(draw_img, contours, -1, (0, 0, 255), 2)
+    cv_show(res, 'res')
+    #
+    # draw_img = img.copy()
+    # res = cv2.drawContours(draw_img, contours, 0, (0, 0, 255), 2)
+    # cv_show(res, 'res')
+    #
+    # # 轮廓特征
+    # cnt = contours[0]
+    #
+    # # 面积
+    # cv2.contourArea(cnt)
+    #
+    # # 周长，True表示闭合的
+    # cv2.arcLength(cnt, True)
+
+
+def image_contour_similar():
+    """
+
+    :return:
+    """
+    img = cv2.imread('{}/images/contours2.png'.format(config.BASE_DIR, ))
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                                   cv2.CHAIN_APPROX_NONE)
+    cnt = contours[0]
+
+    draw_img = img.copy()
+    res = cv2.drawContours(draw_img, [cnt], -1, (0, 0, 255), 2)
+    # cv_show('res', res)
+
+    epsilon = 0.15 * cv2.arcLength(cnt, True)
+    approx = cv2.approxPolyDP(cnt, epsilon, True)
+
+    draw_img = img.copy()
+    res = cv2.drawContours(draw_img, [approx], -1, (0, 0, 255), 2)
+    cv_show('res', res)
+
+
+def image_contour_2():
+    """
+    边界矩形
+    :return:
+    """
+    img = cv2.imread('{}/images/contours.png'.format(config.BASE_DIR, ))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                                   cv2.CHAIN_APPROX_NONE)
+    cnt = contours[0]
+
+    x, y, w, h = cv2.boundingRect(cnt)
+    img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    # cv_show('img', img)
+
+    area = cv2.contourArea(cnt)
+    x, y, w, h = cv2.boundingRect(cnt)
+    rect_area = w * h
+    extent = float(area) / rect_area
+    print('轮廓面积与边界矩形比', extent)
+
+    (x, y), radius = cv2.minEnclosingCircle(cnt)
+    center = (int(x), int(y))
+    radius = int(radius)
+    img = cv2.circle(img, center, radius, (0, 255, 0), 2)
+    cv_show('img', img)
+
+
+def fourier_transform():
+    """
+    https://zhuanlan.zhihu.com/p/19763358
+    傅里叶变换的作用
+    傅里叶变换进行滤波处理的真正好处是可以通过使用定制的滤波器来消除图像中某些特定频率，例如这些特定频率可能代表着图像中重复出现的纹理。
+    高频：变化剧烈的灰度分量，例如边界
+
+    低频：变化缓慢的灰度分量，例如一片大海
+
+    滤波
+    低通滤波器：只保留低频，会使得图像模糊
+
+    高通滤波器：只保留高频，会使得图像细节增强
+
+    opencv中主要就是cv2.dft()和cv2.idft()，输入图像需要先转换成np.float32 格式。
+    得到的结果中频率为0的部分会在左上角，通常要转换到中心位置，可以通过shift变换来实现。
+    cv2.dft()返回的结果是双通道的（实部，虚部），通常还需要转换成图像格式才能展示（0,255）。
+    :return:
+    """
+    img = cv2.imread('{}/images/lena.jpg'.format(config.BASE_DIR, ), 0)
+
+    img_float32 = np.float32(img)
+
+    dft = cv2.dft(img_float32, flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+    # 得到灰度图能表示的形式
+    magnitude_spectrum = 20 * np.log(
+        cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]))
+
+    plt.subplot(121), plt.imshow(img, cmap='gray')
+    plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122), plt.imshow(magnitude_spectrum, cmap='gray')
+    plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+    plt.show()
+
+
+def fourier_transform_1():
+    """
+    傅里叶变换:低通滤波
+    :return:
+    """
+    img = cv2.imread('{}/images/lena.jpg'.format(config.BASE_DIR, ), 0)
+    img_float32 = np.float32(img)
+
+    dft = cv2.dft(img_float32, flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+
+    rows, cols = img.shape
+    crow, ccol = int(rows / 2), int(cols / 2)  # 中心位置
+
+    # 低通滤波
+    mask = np.zeros((rows, cols, 2), np.uint8)
+    mask[crow - 30:crow + 30, ccol - 30:ccol + 30] = 1
+
+    # IDFT
+    fshift = dft_shift * mask
+    f_ishift = np.fft.ifftshift(fshift)
+    img_back = cv2.idft(f_ishift)
+    img_back = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
+
+    plt.subplot(121), plt.imshow(img, cmap='gray')
+    plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122), plt.imshow(img_back, cmap='gray')
+    plt.title('Result'), plt.xticks([]), plt.yticks([])
+    plt.show()
+
+
+def fourier_transform_2():
+    """
+    傅里叶变换:高通滤波
+    :return:
+    """
+    img = cv2.imread('{}/images/lena.jpg'.format(config.BASE_DIR, ), 0)
+    img_float32 = np.float32(img)
+
+    dft = cv2.dft(img_float32, flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+
+    rows, cols = img.shape
+    crow, ccol = int(rows / 2), int(cols / 2)  # 中心位置
+
+    # 高通滤波
+    mask = np.ones((rows, cols, 2), np.uint8)
+    mask[crow - 30:crow + 30, ccol - 30:ccol + 30] = 0
+
+    # IDFT
+    fshift = dft_shift * mask
+    f_ishift = np.fft.ifftshift(fshift)
+    img_back = cv2.idft(f_ishift)
+    img_back = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
+
+    plt.subplot(121), plt.imshow(img, cmap='gray')
+    plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122), plt.imshow(img_back, cmap='gray')
+    plt.title('Result'), plt.xticks([]), plt.yticks([])
+    plt.show()
+
+
 if __name__ == '__main__':
-    images_gradient_laplacian()
+    image_contour()
