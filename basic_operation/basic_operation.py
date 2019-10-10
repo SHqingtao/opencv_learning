@@ -103,12 +103,12 @@ def images_smooth():
     # cv_show('box', box)
 
     # 方框滤波
-    # 基本和均值一样，可以选择归一化,容易越界
+    # 基本和均值一样，可以选择归一化,容易越界,越界之后取最大值256
     box = cv2.boxFilter(img, -1, (3, 3), normalize=False)
     # cv_show('box', box)
 
     # 高斯滤波
-    # 高斯模糊的卷积核里的数值是满足高斯分布，相当于更重视中间的
+    # 高斯模糊的卷积核里的数值是满足高斯分布，相当于更重视中间的，中间周边会根据距离调整重视程度
     aussian = cv2.GaussianBlur(img, (5, 5), 1)
     # cv_show('aussian', aussian)
 
@@ -257,7 +257,7 @@ def images_gradient_sobel():
     # cv_show('sobelx', sobelx)
 
     sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
-    sobelx = cv2.convertScaleAbs(sobelx)
+    sobelx = cv2.convertScaleAbs(sobelx)  # convertScaleAbs可以右边减去左边的负数取绝对值转为正数，可得到完整的轮廓
     # cv_show('sobelx', sobelx)
 
     sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)
@@ -278,7 +278,7 @@ def images_gradient_sobel():
     sobelx_2 = cv2.convertScaleAbs(sobelx_1)
     sobely_3 = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)
     sobely_4 = cv2.convertScaleAbs(sobely_3)
-    sobelxy = cv2.addWeighted(sobelx_2, 0.5, sobely_4, 0.5, 0)
+    sobelxy = cv2.addWeighted(sobelx_2, 0.5, sobely_4, 0.5, 0)  # 里面的0为偏至量，默认为0
     res = np.hstack((sobelx_1, sobelx_2, sobelxy))
     # cv_show('res', res)
 
@@ -291,7 +291,7 @@ def images_gradient_sobel():
 
 def images_gradient_laplacian():
     """
-    laplacian算子
+    laplacian算子 相当于二阶求导，对于边框更敏感，但是对于噪音点也是更敏感
     :return:
     """
     # 不同算子的差异比较
