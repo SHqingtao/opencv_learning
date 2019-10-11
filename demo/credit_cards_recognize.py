@@ -6,6 +6,12 @@ import myutils
 
 
 def sort_contours(cnts, method="left-to-right"):
+    """
+    对检测到的外轮廓进行排序
+    :param cnts:
+    :param method:
+    :return:
+    """
     reverse = False
     i = 0
 
@@ -14,12 +20,12 @@ def sort_contours(cnts, method="left-to-right"):
 
     if method == "top-to-bottom" or method == "bottom-to-top":
         i = 1
-    boundingBoxes = [cv2.boundingRect(c) for c in
+    boundingBoxes = [cv2.boundingRect(c) for c in  #
                      cnts]  # 用一个最小的矩形，把找到的形状包起来x,y,h,w
     (cnts, boundingBoxes) = zip(*sorted(zip(cnts, boundingBoxes),
                                         key=lambda b: b[1][i], reverse=reverse))
 
-    return cnts, boundingBoxes
+    return cnts, boundingBoxes  # 返回轮廓
 
 
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
@@ -69,13 +75,14 @@ def recognize_images():
     # 计算轮廓
     # cv2.findContours()函数接受的参数为二值图，即黑白的（不是灰度图）,cv2.RETR_EXTERNAL只检测外轮廓，cv2.CHAIN_APPROX_SIMPLE只保留终点坐标
     # 返回的list中每个元素都是图像中的一个轮廓
-
+    # refCnts保存的是我们的外轮廓
     refCnts, hierarchy = cv2.findContours(
         ref.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    # -1表示我们要画出所有的外轮廓
     cv2.drawContours(img, refCnts, -1, (0, 0, 255), 3)
     # cv_show('img', img)
-    print(np.array(refCnts).shape)
+    print(np.array(refCnts).shape)  # 打印出轮廓数量
     refCnts = sort_contours(refCnts, method="left-to-right")[
         0]  # 排序，从左到右，从上到下
     digits = {}
@@ -84,10 +91,10 @@ def recognize_images():
     for (i, c) in enumerate(refCnts):
         # 计算外接矩形并且resize成合适大小
         (x, y, w, h) = cv2.boundingRect(c)
-        roi = ref[y:y + h, x:x + w]
+        roi = ref[y:y + h, x:x + w]  # 根据坐标拿到每个轮廓
         roi = cv2.resize(roi, (57, 88))
 
-        # 每一个数字对应每一个模板
+        # 构建字典每一个数字对应每一个模板
         digits[i] = roi
 
     # 初始化卷积核
