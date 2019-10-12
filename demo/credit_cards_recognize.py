@@ -59,10 +59,10 @@ def cv_show(name, img):
     cv2.destroyAllWindows()
 
 
-def recognize_images():
+def recognize_images(image_name):
     """
     信用卡卡号识别
-
+    :param image_name:
     :return:
     """
     # 读取一个模板图像
@@ -102,7 +102,7 @@ def recognize_images():
     sqKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
 
     # 读取输入图像，预处理
-    image = cv2.imread(config.image_dir.format('credit_card_02.png'))
+    image = cv2.imread(config.image_dir.format(image_name))
     # cv_show('image', image)
     image = resize(image, width=300)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -216,4 +216,5 @@ def recognize_images():
 
 
 if __name__ == '__main__':
-    recognize_images()
+    image_name = ''
+    recognize_images(image_name)
